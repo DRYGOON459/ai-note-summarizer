@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Notes Assistant</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; background: #f7f7f7; }
+        .card { background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        textarea, input { width: 100%; padding: 0.75rem; margin-top: 0.5rem; box-sizing: border-box; }
+        button { padding: 0.7rem 1rem; margin-top: 0.75rem; cursor: pointer; }
+        .summary { white-space: pre-wrap; }
+        .saved-item { border-top: 1px solid #ddd; padding-top: 0.7rem; margin-top: 0.7rem; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>AI Notes Assistant</h1>
+    <p>Paste class notes, generate a summary, and save it for later.</p>
+    <textarea id="notes" rows="8" placeholder="Paste notes here..."></textarea>
+    <button id="summarizeBtn">Summarize</button>
+    <h3>Summary</h3>
+    <div id="summary" class="summary">No summary yet.</div>
+    <input id="title" placeholder="Title for this summary" />
+    <button id="saveBtn">Save Summary</button>
+</div>
+<div class="card">
+    <h2>Previous Summaries</h2>
+    <div id="savedSummaries"></div>
+</div>
+<script>
+    const summaryBox = document.getElementById('summary');
+    const savedBox = document.getElementById('savedSummaries');
+
+    document.getElementById('summarizeBtn').addEventListener('click', async () => {
+        const text = document.getElementById('notes').value;
+        const response = await fetch('/api/summaries/summarize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        const data = await response.json();
+        summaryBox.textContent = data.summary;
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+        const title = document.getElementById('title').value || 'Untitled summary';
+        const originalText = document.getElementById('notes').value;
+        const summary = summaryBox.textContent;
+        await fetch('/api/summaries', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, originalText, summary })
+        });
+        loadSummaries();
+    });
+
+    async function loadSummaries() {
+        const response = await fetch('/api/summaries');
+        const summaries = await response.json();
+        savedBox.innerHTML = summaries.length ? summaries.map(item => `
+            <div class="saved-item">
+                <strong>${item.title}</strong>
+                <p>${item.summary}</p>
+            </div>
+        `).join('') : '<p>No saved summaries yet.</p>';
+    }
+
+    loadSummaries();
+</script>
+</body>
+</html>
