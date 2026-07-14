@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
+import java.time.Instant;
 
 @Entity
 public class SavedSummary {
@@ -22,6 +23,7 @@ public class SavedSummary {
     @Lob
     @Column(columnDefinition = "TEXT")
     private String summary;
+    private Instant createdAt;
 
     public SavedSummary() {
     }
@@ -56,5 +58,13 @@ public class SavedSummary {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

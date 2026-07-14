@@ -10,7 +10,13 @@
         textarea, input { width: 100%; padding: 0.75rem; margin-top: 0.5rem; box-sizing: border-box; }
         button { padding: 0.7rem 1rem; margin-top: 0.75rem; cursor: pointer; }
         .summary { white-space: pre-wrap; }
-        .saved-item { border-top: 1px solid #ddd; padding-top: 0.7rem; margin-top: 0.7rem; }
+        .saved-item { border-top: 1px solid #ddd; padding-top: 0.7rem; margin-top: 0.7rem; display:flex; justify-content:space-between; gap:1rem; }
+        .saved-left { flex: 1; }
+        .saved-actions { white-space: nowrap; }
+        .action-btn { margin-left: 0.5rem; padding: 0.35rem 0.6rem; border: none; color: #fff; border-radius: 6px; cursor: pointer; }
+        .edit-btn { background: #28a745; }
+        .delete-btn { background: #dc3545; }
+        .meta { color: #666; font-size: 0.85rem; margin-bottom: 0.3rem; }
     </style>
 </head>
 <body>
@@ -31,6 +37,7 @@
 <script>
     const summaryBox = document.getElementById('summary');
     const savedBox = document.getElementById('savedSummaries');
+    let savedData = [];
 
     document.getElementById('summarizeBtn').addEventListener('click', async () => {
         const text = document.getElementById('notes').value;
@@ -58,12 +65,48 @@
     async function loadSummaries() {
         const response = await fetch('/api/summaries');
         const summaries = await response.json();
-        savedBox.innerHTML = summaries.length ? summaries.map(item => `
+        savedData = summaries;
+        if (!summaries.length) {
+            savedBox.innerHTML = '<p>No saved summaries yet.</p>';
+            return;
+        }
+        savedBox.innerHTML = summaries.map(item => `
             <div class="saved-item">
-                <strong>${item.title}</strong>
-                <p>${item.summary}</p>
+                <div class="saved-left">
+                    <strong>${item.title}</strong>
+                    <div class="meta">${new Date(item.createdAt).toLocaleString()}</div>
+                    <p>${item.summary}</p>
+                </div>
+                <div class="saved-actions">
+                    <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
+                    <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
+                </div>
             </div>
-        `).join('') : '<p>No saved summaries yet.</p>';
+        `).join('');
+
+        // attach handlers
+        savedBox.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', async (e) => {
+            const id = Number(e.target.getAttribute('data-id'));
+            const item = savedData.find(s => s.id === id);
+            if (!item) return;
+            const newTitle = prompt('Edit title', item.title);
+            if (newTitle === null) return;
+            const newSummary = prompt('Edit summary', item.summary);
+            if (newSummary === null) return;
+            await fetch('/api/summaries/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle, originalText: item.originalText, summary: newSummary })
+            });
+            loadSummaries();
+        }));
+
+        savedBox.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', async (e) => {
+            const id = Number(e.target.getAttribute('data-id'));
+            if (!confirm('Delete this summary?')) return;
+            await fetch('/api/summaries/' + id, { method: 'DELETE' });
+            loadSummaries();
+        }));
     }
 
     loadSummaries();

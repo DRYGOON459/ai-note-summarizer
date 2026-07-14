@@ -1,8 +1,11 @@
 package com.example.demo.service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.SavedSummary;
@@ -33,7 +36,8 @@ public class SummaryService {
             return new SummaryResponse(fallback);
         }
 
-        return new SummaryResponse("AI summary would be generated here using model " + model + " for input: " + text.substring(0, Math.min(text.length(), 80)) + "...");
+        return new SummaryResponse("AI summary would be generated here using model " + model + " for input: "
+                + text.substring(0, Math.min(text.length(), 80)) + "...");
     }
 
     public SavedSummary saveSummary(String title, String originalText, String summary) {
@@ -41,11 +45,28 @@ public class SummaryService {
         savedSummary.setTitle(title);
         savedSummary.setOriginalText(originalText);
         savedSummary.setSummary(summary);
+        savedSummary.setCreatedAt(Instant.now());
         return summaryRepository.save(savedSummary);
     }
 
     public List<SavedSummary> getAllSummaries() {
-        return summaryRepository.findAll();
+        return summaryRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    public Optional<SavedSummary> updateSummary(Long id, String title, String originalText, String summary) {
+        Optional<SavedSummary> opt = summaryRepository.findById(id);
+        if (opt.isEmpty())
+            return Optional.empty();
+        SavedSummary s = opt.get();
+        s.setTitle(title);
+        s.setOriginalText(originalText);
+        s.setSummary(summary);
+        // do not change createdAt so order by createdAt remains stable
+        return Optional.of(summaryRepository.save(s));
+    }
+
+    public void deleteSummary(Long id) {
+        summaryRepository.deleteById(id);
     }
 
     private String summarizeLocally(String text) {
