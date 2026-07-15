@@ -61,7 +61,7 @@ public class SummaryService {
         s.setTitle(title);
         s.setOriginalText(originalText);
         s.setSummary(summary);
-        // do not change createdAt so order by createdAt remains stable
+        s.setCreatedAt(Instant.now());
         return Optional.of(summaryRepository.save(s));
     }
 
