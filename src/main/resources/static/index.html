@@ -22,9 +22,13 @@
 <body>
 <div class="card">
     <h1>AI Notes Assistant</h1>
-    <p>Paste class notes, generate a summary, and save it for later.</p>
+    <p>Paste class notes, generate a summary, upload a Word file, and save results for later.</p>
     <textarea id="notes" rows="8" placeholder="Paste notes here..."></textarea>
     <button id="summarizeBtn">Summarize</button>
+    <div style="margin-top:1rem;">
+        <input type="file" id="uploadFile" accept=".docx" />
+        <button id="uploadBtn">Upload Word</button>
+    </div>
     <h3>Summary</h3>
     <div id="summary" class="summary">No summary yet.</div>
     <input id="title" placeholder="Title for this summary" />
@@ -46,6 +50,27 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
         });
+        const data = await response.json();
+        summaryBox.textContent = data.summary;
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('uploadFile');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Select a Word file to upload.');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch('/api/upload/word', {
+            method: 'POST',
+            body: formData
+        });
+        if (!response.ok) {
+            alert(await response.text());
+            return;
+        }
         const data = await response.json();
         summaryBox.textContent = data.summary;
     });

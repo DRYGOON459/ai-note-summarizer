@@ -1,9 +1,12 @@
 package com.example.demo.service;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,18 @@ public class SummaryService {
 
         return new SummaryResponse("AI summary would be generated here using model " + model + " for input: "
                 + text.substring(0, Math.min(text.length(), 80)) + "...");
+    }
+
+    public SummaryResponse summarizeWordFile(org.springframework.web.multipart.MultipartFile file) throws IOException {
+        String extracted = extractTextFromDocx(file);
+        return summarizeText(extracted);
+    }
+
+    private String extractTextFromDocx(org.springframework.web.multipart.MultipartFile file) throws IOException {
+        try (XWPFDocument document = new XWPFDocument(file.getInputStream());
+                XWPFWordExtractor extractor = new XWPFWordExtractor(document)) {
+            return extractor.getText();
+        }
     }
 
     public SavedSummary saveSummary(String title, String originalText, String summary) {

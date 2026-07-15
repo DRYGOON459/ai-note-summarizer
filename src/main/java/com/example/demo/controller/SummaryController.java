@@ -1,13 +1,17 @@
 package com.example.demo.controller;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.SavedSummary;
 import com.example.demo.service.SummaryService;
@@ -28,6 +32,12 @@ public class SummaryController {
     @PostMapping("/summarize")
     public SummaryService.SummaryResponse summarize(@RequestBody @Valid SummaryRequest request) {
         return summaryService.summarizeText(request.text());
+    }
+
+    @PostMapping("/upload-word")
+    public SummaryService.SummaryResponse uploadWord(
+            @org.springframework.web.bind.annotation.RequestParam("file") MultipartFile file) throws IOException {
+        return summaryService.summarizeWordFile(file);
     }
 
     @PostMapping
