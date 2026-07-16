@@ -10,6 +10,8 @@
         textarea, input { width: 100%; padding: 0.75rem; margin-top: 0.5rem; box-sizing: border-box; }
         button { padding: 0.7rem 1rem; margin-top: 0.75rem; cursor: pointer; }
         .summary { white-space: pre-wrap; }
+        .summary ul { margin: 0.5rem 0 0 1.2rem; }
+        .summary li { margin-bottom: 0.4rem; }
         .saved-item { border-top: 1px solid #ddd; padding-top: 0.7rem; margin-top: 0.7rem; display:flex; justify-content:space-between; gap:1rem; }
         .saved-left { flex: 1; }
         .saved-actions { white-space: nowrap; }
@@ -51,7 +53,7 @@
             body: JSON.stringify({ text })
         });
         const data = await response.json();
-        summaryBox.textContent = data.summary;
+        renderSummary(data.summary);
     });
 
     document.getElementById('uploadBtn').addEventListener('click', async () => {
@@ -72,7 +74,7 @@
             return;
         }
         const data = await response.json();
-        summaryBox.textContent = data.summary;
+        renderSummary(data.summary);
     });
 
     document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -100,7 +102,7 @@
                 <div class="saved-left">
                     <strong>${item.title}</strong>
                     <div class="meta">${new Date(item.createdAt).toLocaleString()}</div>
-                    <p>${item.summary}</p>
+                    <div class="summary">${formatSummaryHtml(item.summary)}</div>
                 </div>
                 <div class="saved-actions">
                     <button class="action-btn edit-btn" data-id="${item.id}">Edit</button>
@@ -132,6 +134,27 @@
             await fetch('/api/summaries/' + id, { method: 'DELETE' });
             loadSummaries();
         }));
+    }
+
+    function renderSummary(summaryText) {
+        summaryBox.innerHTML = formatSummaryHtml(summaryText);
+    }
+
+    function formatSummaryHtml(summaryText) {
+        if (!summaryText) return '';
+        const lines = summaryText.split(/\r?\n/).map(line => line.trim()).filter(line => line.length);
+        const listItems = lines.map(line => {
+            const content = line.replace(/^[-*\u2022]\s*/, '');
+            return `<li>${escapeHtml(content)}</li>`;
+        });
+        if (listItems.length > 1) {
+            return `<ul>${listItems.join('')}</ul>`;
+        }
+        return `<p>${escapeHtml(summaryText)}</p>`;
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/[&<>"]/, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[match]));
     }
 
     loadSummaries();
