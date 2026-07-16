@@ -34,10 +34,10 @@ public class SummaryController {
         return summaryService.summarizeText(request.text());
     }
 
-    @PostMapping("/upload-word")
-    public SummaryService.SummaryResponse uploadWord(
+    @PostMapping("/upload-file")
+    public SummaryService.SummaryResponse uploadFile(
             @org.springframework.web.bind.annotation.RequestParam("file") MultipartFile file) throws IOException {
-        return summaryService.summarizeWordFile(file);
+        return summaryService.summarizeFile(file);
     }
 
     @PostMapping

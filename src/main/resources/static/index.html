@@ -28,8 +28,9 @@
     <textarea id="notes" rows="8" placeholder="Paste notes here..."></textarea>
     <button id="summarizeBtn">Summarize</button>
     <div style="margin-top:1rem;">
-        <input type="file" id="uploadFile" accept=".docx" />
-        <button id="uploadBtn">Upload Word</button>
+        <input type="file" id="uploadFile"
+            accept=".docx,.pdf,.txt,.md,.png,.jpg,.jpeg,.bmp,.gif,.tiff" />
+        <button id="uploadBtn">Upload File</button>
     </div>
     <h3>Summary</h3>
     <div id="summary" class="summary">No summary yet.</div>
@@ -60,12 +61,12 @@
         const fileInput = document.getElementById('uploadFile');
         const file = fileInput.files[0];
         if (!file) {
-            alert('Select a Word file to upload.');
+            alert('Select a file to upload.');
             return;
         }
         const formData = new FormData();
         formData.append('file', file);
-        const response = await fetch('/api/upload/word', {
+        const response = await fetch('/api/upload', {
             method: 'POST',
             body: formData
         });

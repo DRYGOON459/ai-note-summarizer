@@ -5,10 +5,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.SavedSummary;
 import com.example.demo.repository.SummaryRepository;
@@ -20,11 +19,14 @@ public class SummaryService {
 
     private final PromptService promptService;
     private final AiService aiService;
+    private final FileExtractionService fileExtractionService;
 
-    public SummaryService(SummaryRepository summaryRepository, PromptService promptService, AiService aiService) {
+    public SummaryService(SummaryRepository summaryRepository, PromptService promptService, AiService aiService,
+            FileExtractionService fileExtractionService) {
         this.summaryRepository = summaryRepository;
         this.promptService = promptService;
         this.aiService = aiService;
+        this.fileExtractionService = fileExtractionService;
     }
 
     public SummaryResponse summarizeText(String text) {
@@ -42,16 +44,9 @@ public class SummaryService {
         }
     }
 
-    public SummaryResponse summarizeWordFile(org.springframework.web.multipart.MultipartFile file) throws IOException {
-        String extracted = extractTextFromDocx(file);
+    public SummaryResponse summarizeFile(MultipartFile file) throws IOException {
+        String extracted = fileExtractionService.extractText(file);
         return summarizeText(extracted);
-    }
-
-    private String extractTextFromDocx(org.springframework.web.multipart.MultipartFile file) throws IOException {
-        try (XWPFDocument document = new XWPFDocument(file.getInputStream());
-                XWPFWordExtractor extractor = new XWPFWordExtractor(document)) {
-            return extractor.getText();
-        }
     }
 
     public SavedSummary saveSummary(String title, String originalText, String summary) {
