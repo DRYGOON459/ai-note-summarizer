@@ -31,21 +31,25 @@ public class SummaryService {
 
     public SummaryResponse summarizeText(String text) {
         if (text == null || text.isBlank()) {
-            return new SummaryResponse("Please provide some notes to summarize.");
+            return new SummaryResponse("No extractable text was found in the document.");
         }
 
-        String prompt = promptService.buildPrompt(text, "bullets");
+        String normalizedText = prepareTextForSummarization(text);
+        String prompt = promptService.buildPrompt(normalizedText, "bullets");
         try {
             String aiSummary = aiService.generate(prompt);
             return new SummaryResponse(aiSummary);
         } catch (Exception ex) {
-            String fallback = summarizeLocally(text);
+            String fallback = summarizeLocally(normalizedText);
             return new SummaryResponse("AI summarization unavailable.\n" + fallback);
         }
     }
 
     public SummaryResponse summarizeFile(MultipartFile file) throws IOException {
         String extracted = fileExtractionService.extractText(file);
+        if (extracted == null || extracted.isBlank()) {
+            return new SummaryResponse("No readable text could be extracted from this file.");
+        }
         return summarizeText(extracted);
     }
 
@@ -76,6 +80,18 @@ public class SummaryService {
 
     public void deleteSummary(Long id) {
         summaryRepository.deleteById(id);
+    }
+
+    private String prepareTextForSummarization(String text) {
+        if (text == null) {
+            return "";
+        }
+        String normalized = text.replaceAll("\\s+", " ").trim();
+        int maxLength = 14000;
+        if (normalized.length() > maxLength) {
+            return normalized.substring(0, maxLength) + "\n\n[Text was trimmed for summarization]";
+        }
+        return normalized;
     }
 
     private String summarizeLocally(String text) {

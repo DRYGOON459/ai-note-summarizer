@@ -29,7 +29,7 @@
     <button id="summarizeBtn">Summarize</button>
     <div style="margin-top:1rem;">
         <input type="file" id="uploadFile"
-            accept=".docx,.pdf,.txt,.md,.png,.jpg,.jpeg,.bmp,.gif,.tiff" />
+            accept=".doc,.docx,.pdf,.txt,.md,.csv,.json,.xml,.log,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.bmp,.gif,.tiff,.tif" />
         <button id="uploadBtn">Upload File</button>
     </div>
     <h3>Summary</h3>
@@ -64,18 +64,27 @@
             alert('Select a file to upload.');
             return;
         }
-        const formData = new FormData();
-        formData.append('file', file);
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        });
-        if (!response.ok) {
-            alert(await response.text());
-            return;
+        const uploadBtn = document.getElementById('uploadBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Processing...';
+        summaryBox.innerHTML = '<p>Extracting text from the document. This can take a moment for large files.</p>';
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                alert(await response.text());
+                return;
+            }
+            const data = await response.json();
+            renderSummary(data.summary);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload File';
         }
-        const data = await response.json();
-        renderSummary(data.summary);
     });
 
     document.getElementById('saveBtn').addEventListener('click', async () => {
