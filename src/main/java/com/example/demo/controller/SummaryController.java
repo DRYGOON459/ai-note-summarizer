@@ -3,13 +3,11 @@ package com.example.demo.controller;
 import java.io.IOException;
 import java.util.List;
 
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,10 +38,11 @@ public class SummaryController {
         return summaryService.summarizeFile(file);
     }
 
+
     @PostMapping
     public SavedSummary save(@RequestBody @Valid SaveRequest request) {
         return summaryService.saveSummary(request.title(), request.originalText(), request.summary());
-    }
+    }  
 
     @GetMapping
     public List<SavedSummary> list() {
