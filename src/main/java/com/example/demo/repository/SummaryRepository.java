@@ -6,5 +6,5 @@ import com.example.demo.model.SavedSummary;
 
 public interface SummaryRepository extends JpaRepository<SavedSummary, Long> {
 
-
+  
 }
