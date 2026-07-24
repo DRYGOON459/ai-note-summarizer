@@ -12,7 +12,6 @@ import jakarta.persistence.Lob;
 @Entity
 public class SavedSummary {
 
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
