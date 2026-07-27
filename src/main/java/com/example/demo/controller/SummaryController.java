@@ -25,6 +25,7 @@ public class SummaryController {
 
     public SummaryController(SummaryService summaryService) {
         this.summaryService = summaryService;
+        
     }
 
     @PostMapping("/summarize")
