@@ -71,4 +71,5 @@ public class SummaryController {
 
     public record UpdateRequest(@NotBlank String title, @NotBlank String originalText, @NotBlank String summary) {
     }
+    
 }
